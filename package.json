@@ -1,0 +1,31 @@
+{
+  "name": "pmc_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.7.7",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "g-i-s": "^2.1.7",
+    "mongoose": "^8.8.1",
+    "nodemailer": "^6.9.16",
+    "nodemon": "^3.1.7",
+    "razorpay": "^2.9.5",
+    "showdown": "^2.1.0",
+    "stripe": "^17.3.1",
+    "unsplash-js": "^7.0.19",
+    "youtube-search-api": "^1.2.2",
+    "youtube-transcript": "^1.2.1"
+  }
+}
