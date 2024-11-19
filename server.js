@@ -287,7 +287,7 @@ app.get('/api/getcountplan', async (req, res) => {
 });
 
 
-//AdminSIGNUP
+//Admins
 
 app.post('/api/adminsignup', async (req, res) => {
     const { email, fname,lname,phone,dob,designation, password, type,logo,company } = req.body;
@@ -379,8 +379,6 @@ app.post("/api/verify", async (req, res) => {
 	}
 });
 
-//AdminSIGNIN
-
 app.post('/api/adminsignin', async (req, res) => {
     const { email, password } = req.body;
   
@@ -465,7 +463,6 @@ app.post('/api/adminsignin', async (req, res) => {
     }
   });
 
-//AdminFOROGT PASSWORD
 app.post('/api/forgot', async (req, res) => {
     const { email, name, company, logo } = req.body;
 
@@ -532,7 +529,6 @@ app.post('/api/forgot', async (req, res) => {
     }
 });
 
-//AdminRESET PASSWORD
 app.post('/api/reset-password', async (req, res) => {
     const { password, token } = req.body;
 
@@ -556,6 +552,31 @@ app.post('/api/reset-password', async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/getadmin', async (req, res) => {
+    try {
+        const User = await Admin.find(); 
+        res.json({ success: true, User:User }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.delete('/api/deleteadmin/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedUser = await Admin.findByIdAndDelete(id);
+
+        if (!deletedUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        res.json({ success: true, message: 'User deleted successfully', User: deletedUser });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 });
 
@@ -598,7 +619,7 @@ app.post('/api/roleaccesslevel', async (req, res) => {
 });
 
 
-//UserSIGNUP
+//UserS
 app.post('/api/usersignup', async (req, res) => {
     const { email, fname,lname,phone,dob, type,logo,company } = req.body;
 
@@ -656,7 +677,7 @@ app.post('/api/usersignup', async (req, res) => {
     
             await transporter.sendMail(mailOptions);
 
-            res.json({ success: true, message: 'An Email sent to your account please verify', userId: newUser._id });
+            res.json({ success: true, message: 'An Email sent to your account please verify', userId: newUser });
        
     } catch (error) {
         console.error('Error:', error);
@@ -664,7 +685,6 @@ app.post('/api/usersignup', async (req, res) => {
     }
 });
 
-//UserSIGNIN
 app.post('/api/usersignin', async (req, res) => {
     const { phone } = req.body;
 
@@ -706,6 +726,31 @@ app.post("/api/verify", async (req, res) => {
 	} catch (error) {
 		res.status(500).send({ message: "Internal Server Error" });
 	}
+});
+
+app.get('/api/getusers', async (req, res) => {
+    try {
+        const User = await User.find(); 
+        res.json({ success: true, User:User }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.delete('/api/deleteuser/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedUser = await User.findByIdAndDelete(id);
+
+        if (!deletedUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        res.json({ success: true, message: 'User deleted successfully', User: deletedUser });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
 });
 
 //SEND MAIL
@@ -779,12 +824,22 @@ app.delete('/api/subscriptionplan/:id', async (req, res) => {
     }
 });
 
+app.get('/api/getsubscriptionplan', async (req, res) => {
+    try {
+        const plans = await SubscriptionPlan.find(); 
+        res.json({ success: true, plans:plans }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+
 //TICEKT
 app.post('/api/ticket', async (req, res) => {
     const { fname,lastName,email,phone,category,subject,desc1,priorty } = req.body;
     try {
-            const token =crypto.randomBytes(4).toString('hex');
-            const ticketId = `#Ticket${token}`
+            const token =crypto.randomBytes(2).toString('hex');
+            const ticketId = `Ticket${token}`
             const newTicket = new Ticket({fname,lastName,email,phone,ticketId,category,subject,desc1,priorty});
             await newTicket.save();
             res.json({ success: true, message: 'Ticket created successfully', Ticket: newTicket.ticketId });
@@ -794,6 +849,62 @@ app.post('/api/ticket', async (req, res) => {
     }
 });
 
+app.put('/api/ticketupdate', async (req, res) => {
+    const { ticketId } = req.query;
+    const { desc2, status,team } = req.body;
+
+    try {
+        const updatedTicket = await Ticket.findOneAndUpdate(
+           { ticketId:ticketId},
+            { desc2, status,team },
+            { new: true }
+        );
+
+        if (!updatedTicket) {
+            return res.status(404).json({ success: false, message: 'Ticket not found' });
+        }
+
+        res.json({ success: true, message: 'Ticket updated successfully', Ticket: updatedTicket });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.delete('/api/deleteticket', async (req, res) => {
+    const { ticketId } = req.query;
+
+    try {
+        const deletedTicket = await Ticket.findOneAndDelete({ticketId});
+
+        if (!deletedTicket) {
+            return res.status(404).json({ success: false, message: 'Ticket not found' });
+        }
+
+        res.json({ success: true, message: 'Ticket deleted successfully', Ticket: deletedTicket });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.get('/api/getticket', async (req, res) => {
+    try {
+        const ticket = await Ticket.find(); 
+        res.json({ success: true, ticket:ticket }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/getticketbyid', async (req, res) => {
+        const { ticketId } = req.query;
+    try {
+        
+        const ticket = await Ticket.findOne({ticketId}); 
+        res.json({ success: true, ticket:ticket }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
 
 //GET DATA FROM MODEL
 app.post('/api/prompt', async (req, res) => {
