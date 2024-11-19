@@ -132,6 +132,21 @@ const planCountShema = new mongoose.Schema({
     count:Number
 });
 
+const TicketSchema = new mongoose.Schema({
+    fname: String,
+    lname: String,
+    phone:String,
+    email:String,
+    ticketId:String,
+    category:String,
+    subject:String,
+    desc1:String,
+    desc2:{ type: String, default: null },
+    priorty:String,
+    status:{ type: String, default: null },
+    team:{ type: String, default: null },
+},{timestamps:true});
+
 //MODEL
 const User = mongoose.model('User', userSchema);
 const Roles = mongoose.model('Role', RoleAccessLevelSchema);
@@ -140,7 +155,8 @@ const SubscriptionPlan = mongoose.model('SubscriptionPlan', subscriptionPlanSche
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
 const Contact = mongoose.model('Contact', contactShema);
 const Admin = mongoose.model('Admin', adminSchema);
-const Count = mongoose.model('Count',planCountShema)
+const Count = mongoose.model('Count',planCountShema);
+const Ticket = mongoose.model('Ticket',TicketSchema);
 
 
 app.post("/order", async (req, res) => {
@@ -516,6 +532,33 @@ app.post('/api/forgot', async (req, res) => {
     }
 });
 
+//AdminRESET PASSWORD
+app.post('/api/reset-password', async (req, res) => {
+    const { password, token } = req.body;
+
+    try {
+        const user = await Admin.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.json({ success: true, message: 'Invalid or expired token' });
+        }
+
+        user.password = password;
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
+
+        await user.save();
+
+        res.json({ success: true, message: 'Password updated successfully', email: user.email });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
 //RoleAcessLevel
 app.post('/api/roleaccesslevel', async (req, res) => {
     const { role_name, accessLevels, status, created_by_user } = req.body;
@@ -735,6 +778,22 @@ app.delete('/api/subscriptionplan/:id', async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 });
+
+//TICEKT
+app.post('/api/ticket', async (req, res) => {
+    const { fname,lastName,email,phone,category,subject,desc1,priorty } = req.body;
+    try {
+            const token =crypto.randomBytes(4).toString('hex');
+            const ticketId = `#Ticket${token}`
+            const newTicket = new Ticket({fname,lastName,email,phone,ticketId,category,subject,desc1,priorty});
+            await newTicket.save();
+            res.json({ success: true, message: 'Ticket created successfully', Ticket: newTicket.ticketId });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
 
 //GET DATA FROM MODEL
 app.post('/api/prompt', async (req, res) => {
