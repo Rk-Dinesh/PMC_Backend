@@ -103,9 +103,9 @@ const courseSchema = new mongoose.Schema({
 });
 const subscriptionPlanSchema = new mongoose.Schema({
     packagename: String,
-    price: String,
+    price: Number,
     course: String,
-    tax: String,
+    tax: Number,
     subtopic: String,
     coursetype: String,
 });
@@ -142,10 +142,22 @@ const TicketSchema = new mongoose.Schema({
     subject:String,
     desc1:String,
     desc2:{ type: String, default: null },
-    priorty:String,
+    priority:String,
     status:{ type: String, default: null },
     team:{ type: String, default: null },
 },{timestamps:true});
+
+const categorySchema = new mongoose.Schema({
+    category: String
+});
+
+const prioritySchema = new mongoose.Schema({
+    priority: String
+});
+const statusSchema = new mongoose.Schema({
+    status: String,
+    color:String
+});
 
 //MODEL
 const User = mongoose.model('User', userSchema);
@@ -157,7 +169,9 @@ const Contact = mongoose.model('Contact', contactShema);
 const Admin = mongoose.model('Admin', adminSchema);
 const Count = mongoose.model('Count',planCountShema);
 const Ticket = mongoose.model('Ticket',TicketSchema);
-
+const Category = mongoose.model('Category',categorySchema);
+const Priority = mongoose.model('Priorty',prioritySchema);
+const Status = mongoose.model('Status',statusSchema);
 
 app.post("/order", async (req, res) => {
     try {
@@ -295,7 +309,7 @@ app.post('/api/adminsignup', async (req, res) => {
     try {
             const existingAdmin = await Admin.findOne({ email });
             if (existingAdmin) {
-                return res.json({ success: false, message: 'User with this email already exists' });
+                return res.status(401).json({ success: false, message: 'User with this email already exists' });
             }
             const token = crypto.randomBytes(20).toString('hex');
             const newAdmin = new Admin({ email, fname,lname,phone,dob,designation, password, type, verifyToken: token, verifyTokenExpires: Date.now() + 3600000 });
@@ -346,7 +360,7 @@ app.post('/api/adminsignup', async (req, res) => {
     
             await transporter.sendMail(mailOptions);
 
-            res.json({ success: true, message: 'An Email sent to your account please verify', userId: newAdmin._id });
+            res.status(200).json({ success: true, message: 'An Email sent to your account please verify', userId: newAdmin._id });
        
     } catch (error) {
         console.error('Error:', error);
@@ -364,7 +378,7 @@ app.post("/api/verify", async (req, res) => {
             verifyTokenExpires: { $gt: Date.now() },
         });
         if (!admin) {
-            return res.json({ success: true, message: 'Invalid or expired token' });
+            return res.status(401).json({ success: true, message: 'Invalid or expired token' });
         }
 
 		admin.verifyToken = null;
@@ -386,7 +400,7 @@ app.post('/api/adminsignin', async (req, res) => {
       const admin = await Admin.findOne({ email });
   
       if (!admin) {
-        return res.json({ success: false, message: 'Invalid email or password' });
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
       }
   
       if (!admin.verified) {
@@ -452,10 +466,10 @@ app.post('/api/adminsignin', async (req, res) => {
       }
   
       if (password === admin.password) {
-        return res.json({ success: true, message: 'SignIn successful', adminData: admin });
+        return res.status(200).json({ success: true, message: 'SignIn successful', adminData: admin });
       }
   
-      res.json({ success: false, message: 'Invalid email or password' });
+      res.status(401).json({ success: false, message: 'Invalid email or password' });
   
     } catch (error) {
       console.error('Error:', error);
@@ -470,7 +484,7 @@ app.post('/api/forgot', async (req, res) => {
         const admin = await Admin.findOne({ email });
 
         if (!admin) {
-            return res.json({ success: false, message: 'Admin not found' });
+            return res.status(404).json({ success: false, message: 'Admin not found' });
         }
 
         const token = crypto.randomBytes(20).toString('hex');
@@ -523,7 +537,7 @@ app.post('/api/forgot', async (req, res) => {
 
         await transporter.sendMail(mailOptions);
 
-        res.json({ success: true, message: 'Password reset link sent to your email' });
+        res.status(200).json({ success: true, message: 'Password reset link sent to your email' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -539,7 +553,7 @@ app.post('/api/reset-password', async (req, res) => {
         });
 
         if (!user) {
-            return res.json({ success: true, message: 'Invalid or expired token' });
+            return res.status(404).json({ success: true, message: 'Invalid or expired token' });
         }
 
         user.password = password;
@@ -548,7 +562,7 @@ app.post('/api/reset-password', async (req, res) => {
 
         await user.save();
 
-        res.json({ success: true, message: 'Password updated successfully', email: user.email });
+        res.status(200).json({ success: true, message: 'Password updated successfully', email: user.email });
 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -558,7 +572,7 @@ app.post('/api/reset-password', async (req, res) => {
 app.get('/api/getadmin', async (req, res) => {
     try {
         const User = await Admin.find(); 
-        res.json({ success: true, User:User }); 
+        res.status(200).json({ success: true, User:User }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -626,7 +640,7 @@ app.post('/api/usersignup', async (req, res) => {
     try {
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                return res.json({ success: false, message: 'User with this email already exists' });
+                return res.status(401).json({ success: false, message: 'User with this email already exists' });
             }
             const token = crypto.randomBytes(20).toString('hex');
             const newUser = new User({ email, fname,lname,phone,dob, type, verifyToken: token, verifyTokenExpires: Date.now() + 3600000 });
@@ -677,7 +691,7 @@ app.post('/api/usersignup', async (req, res) => {
     
             await transporter.sendMail(mailOptions);
 
-            res.json({ success: true, message: 'An Email sent to your account please verify', userId: newUser });
+            res.status(200).json({ success: true, message: 'An Email sent to your account please verify', userId: newUser });
        
     } catch (error) {
         console.error('Error:', error);
@@ -692,10 +706,10 @@ app.post('/api/usersignin', async (req, res) => {
         const user = await User.findOne({ phone });
 
         if (!user) {
-            return res.json({ success: false, message: 'Invalid  phone' });
+            return res.status(401).json({ success: false, message: 'Invalid  phone' });
         }
 
-        return res.json({ success: true, message: 'SignIn successful', userData: user });
+        return res.status(200).json({ success: true, message: 'SignIn successful', userData: user });
 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Invalid email or password' });
@@ -713,7 +727,7 @@ app.post("/api/verify", async (req, res) => {
             verifyTokenExpires: { $gt: Date.now() },
         });
         if (!user) {
-            return res.json({ success: true, message: 'Invalid or expired token' });
+            return res.status(401).json({ success: true, message: 'Invalid or expired token' });
         }
 
 		user.verifyToken = null;
@@ -731,7 +745,7 @@ app.post("/api/verify", async (req, res) => {
 app.get('/api/getusers', async (req, res) => {
     try {
         const User = await User.find(); 
-        res.json({ success: true, User:User }); 
+        res.status(200).json({ success: true, User:User }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -747,7 +761,7 @@ app.delete('/api/deleteuser/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        res.json({ success: true, message: 'User deleted successfully', User: deletedUser });
+        res.status(200).json({ success: true, message: 'User deleted successfully', User: deletedUser });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
@@ -780,7 +794,7 @@ app.post('/api/subscriptionplan', async (req, res) => {
     try {
             const newPlan = new SubscriptionPlan({ packagename, price, course,tax,subtopic, coursetype});
             await newPlan.save();
-            res.json({ success: true, message: 'Plan created successfully', Plan: newPlan });
+            res.status(200).json({ success: true, message: 'Plan created successfully', Plan: newPlan });
         
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -802,7 +816,7 @@ app.put('/api/subscriptionplan/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Plan not found' });
         }
 
-        res.json({ success: true, message: 'Plan updated successfully', Plan: updatedPlan });
+        res.status(200).json({ success: true, message: 'Plan updated successfully', Plan: updatedPlan });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
@@ -818,7 +832,7 @@ app.delete('/api/subscriptionplan/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Plan not found' });
         }
 
-        res.json({ success: true, message: 'Plan deleted successfully', Plan: deletedPlan });
+        res.status(200).json({ success: true, message: 'Plan deleted successfully', Plan: deletedPlan });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
@@ -827,7 +841,7 @@ app.delete('/api/subscriptionplan/:id', async (req, res) => {
 app.get('/api/getsubscriptionplan', async (req, res) => {
     try {
         const plans = await SubscriptionPlan.find(); 
-        res.json({ success: true, plans:plans }); 
+        res.status(200).json({ success: true, plans:plans }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -836,13 +850,13 @@ app.get('/api/getsubscriptionplan', async (req, res) => {
 
 //TICEKT
 app.post('/api/ticket', async (req, res) => {
-    const { fname,lastName,email,phone,category,subject,desc1,priorty } = req.body;
+    const { fname,lastName,email,phone,category,subject,desc1,priority } = req.body;
     try {
             const token =crypto.randomBytes(2).toString('hex');
             const ticketId = `Ticket${token}`
-            const newTicket = new Ticket({fname,lastName,email,phone,ticketId,category,subject,desc1,priorty});
+            const newTicket = new Ticket({fname,lastName,email,phone,ticketId,category,subject,desc1,priority});
             await newTicket.save();
-            res.json({ success: true, message: 'Ticket created successfully', Ticket: newTicket.ticketId });
+            res.status(200).json({ success: true, message: 'Ticket created successfully', Ticket: newTicket.ticketId });
         
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -864,7 +878,7 @@ app.put('/api/ticketupdate', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Ticket not found' });
         }
 
-        res.json({ success: true, message: 'Ticket updated successfully', Ticket: updatedTicket });
+        res.status(200).json({ success: true, message: 'Ticket updated successfully', Ticket: updatedTicket });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
@@ -880,7 +894,7 @@ app.delete('/api/deleteticket', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Ticket not found' });
         }
 
-        res.json({ success: true, message: 'Ticket deleted successfully', Ticket: deletedTicket });
+        res.status(200).json({ success: true, message: 'Ticket deleted successfully', Ticket: deletedTicket });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
@@ -889,7 +903,7 @@ app.delete('/api/deleteticket', async (req, res) => {
 app.get('/api/getticket', async (req, res) => {
     try {
         const ticket = await Ticket.find(); 
-        res.json({ success: true, ticket:ticket }); 
+        res.status(200).json({ success: true, ticket:ticket }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -900,11 +914,188 @@ app.get('/api/getticketbyid', async (req, res) => {
     try {
         
         const ticket = await Ticket.findOne({ticketId}); 
-        res.json({ success: true, ticket:ticket }); 
+        res.status(200).json({ success: true, ticket:ticket }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
+
+//category
+app.post('/api/category', async (req, res) => {
+    const { category } = req.body;
+    try {
+            const newCategory = new Category({ category});
+            await newCategory.save();
+            res.status(200).json({ success: true, message: 'Category created successfully', Category: newCategory });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.put('/api/category/:id', async (req, res) => {
+    const { id } = req.params;
+    const { category } = req.body;
+
+    try {
+        const updatedCategory = await Category.findByIdAndUpdate(
+            id,
+            {category },
+            { new: true, runValidators: true } // Returns the updated document and runs validators
+        );
+
+        if (!updatedCategory) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Category updated successfully', Category: updatedCategory });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.delete('/api/category/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedCategory = await Category.findByIdAndDelete(id);
+
+        if (!deletedCategory) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Category deleted successfully', Category: deletedCategory });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.get('/api/getcategory', async (req, res) => {
+    try {
+        const cate = await Category.find(); 
+        res.status(200).json({ success: true, cate:cate }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+//priority
+app.post('/api/priority', async (req, res) => {
+    const { priority } = req.body;
+    try {
+            const newPriority = new Priority({ priority});
+            await newPriority.save();
+            res.status(200).json({ success: true, message: 'Priority created successfully', Priority: newPriority });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.put('/api/priorty/:id', async (req, res) => {
+    const { id } = req.params;
+    const { priority } = req.body;
+
+    try {
+        const updatedpriority = await Priority.findByIdAndUpdate(
+            id,
+            {priority },
+            { new: true, runValidators: true } // Returns the updated document and runs validators
+        );
+
+        if (!updatedpriority) {
+            return res.status(404).json({ success: false, message: 'priority not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'priority updated successfully', priority: updatedpriority });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.delete('/api/priorty/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedPriority = await Priority.findByIdAndDelete(id);
+
+        if (!deletedPriority) {
+            return res.status(404).json({ success: false, message: 'Priority not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Priority deleted successfully', Priority: deletedPriority });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.get('/api/getpriorty', async (req, res) => {
+    try {
+        const Priority = await Category.find(); 
+        res.status(200).json({ success: true, Priority:Priority }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+//status
+app.post('/api/status', async (req, res) => {
+    const { status,color } = req.body;
+    try {
+            const newStatus = new Status({ status,color});
+            await newStatus.save();
+            res.status(200).json({ success: true, message: 'newStatus created successfully', Status: newStatus });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.put('/api/status/:id', async (req, res) => {
+    const { id } = req.params;
+    const { status,color } = req.body;
+
+    try {
+        const updatedStatus = await Status.findByIdAndUpdate(
+            id,
+            {status,color },
+            { new: true, runValidators: true } // Returns the updated document and runs validators
+        );
+
+        if (!updatedStatus) {
+            return res.status(404).json({ success: false, message: 'Status not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Status updated successfully', Status: updatedStatus });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.delete('/api/status/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deletedStatus = await Status.findByIdAndDelete(id);
+
+        if (!deletedStatus) {
+            return res.status(404).json({ success: false, message: 'Status not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Status deleted successfully', Status: deletedStatus });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.get('/api/getstatus', async (req, res) => {
+    try {
+        const Status = await Status.find(); 
+        res.status(200).json({ success: true, Status:Status }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
 
 //GET DATA FROM MODEL
 app.post('/api/prompt', async (req, res) => {
