@@ -28,7 +28,8 @@ app.use(cors({
 }));
 const PORT = process.env.PORT;
 app.use(bodyParser.json());
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true }).then((open)=>(console.log('connected to DB'))).catch((err)=>(console.log('Not connected to Db')));
+const db = mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true }).then((open)=>(console.log('connected to DB'))).catch((err)=>(console.log('Not connected to Db')));
+const gfs = new mongoose.mongo.GridFSBucket(mongoose.connection,{bucketName:"profileImage"})
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
@@ -90,9 +91,16 @@ const userSchema = new mongoose.Schema({
     verifyTokenExpires: { type: Date, default: null },
     verified: { type: Boolean, default: true },
 });
+const userprofile = new mongoose.Schema({
+    user:String,
+});
+
 const courseSchema = new mongoose.Schema({
     user: String,
-
+    fname: String,
+    lname: String,
+    phone:String,
+    email:String,
     content: { type: String, required: true },
     type: String,
     mainTopic: String,
@@ -133,6 +141,7 @@ const planCountShema = new mongoose.Schema({
 });
 
 const TicketSchema = new mongoose.Schema({
+    user:String,
     fname: String,
     lname: String,
     phone:String,
@@ -633,14 +642,14 @@ app.post('/api/roleaccesslevel', async (req, res) => {
 });
 
 
-//UserS
+//Users
 app.post('/api/usersignup', async (req, res) => {
     const { email, fname,lname,phone,dob, type,logo,company } = req.body;
 
     try {
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                return res.status(401).json({ success: false, message: 'User with this email already exists' });
+                return res.status(404).json({ success: false, message: 'User with this email already exists' });
             }
             const token = crypto.randomBytes(20).toString('hex');
             const newUser = new User({ email, fname,lname,phone,dob, type, verifyToken: token, verifyTokenExpires: Date.now() + 3600000 });
@@ -767,6 +776,52 @@ app.delete('/api/deleteuser/:id', async (req, res) => {
     }
 });
 
+app.post('/api/emailupdate', async (req, res) => {
+    const { phone } = req.query;
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ phone });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User  not found' });
+        }
+        user.email = email;
+        await user.save(); 
+        const updatedTickets = await Ticket.updateMany({ phone }, { $set: { email } });
+
+        if (updatedTickets.modifiedCount === 0) {
+            return res.status(200).json({ success: false, message: 'No tickets found to update' });
+        }
+
+        res.status(200).json({ success: true, message: 'Email updated successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.post('/api/phoneupdate', async (req, res) => {
+    const { email } = req.query;
+    const { phone } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User  not found' });
+        }
+        user.phone = phone;
+        await user.save(); 
+        const updatedTickets = await Ticket.updateMany({ email }, { $set: { phone } });
+
+        if (updatedTickets.modifiedCount === 0) {
+            return res.status(200).json({ success: false, message: 'No tickets found to update' });
+        }
+
+        res.status(200).json({ success: true, message: 'Phone updated successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
 //SEND MAIL
 app.post('/api/data', async (req, res) => {
     const receivedData = req.body;
@@ -850,11 +905,11 @@ app.get('/api/getsubscriptionplan', async (req, res) => {
 
 //TICEKT
 app.post('/api/ticket', async (req, res) => {
-    const { fname,lastName,email,phone,category,subject,desc1,priority } = req.body;
+    const { user,fname,lname,email,phone,category,subject,desc1,priority } = req.body;
     try {
             const token =crypto.randomBytes(2).toString('hex');
             const ticketId = `Ticket${token}`
-            const newTicket = new Ticket({fname,lastName,email,phone,ticketId,category,subject,desc1,priority});
+            const newTicket = new Ticket({user,fname,lname,email,phone,ticketId,category,subject,desc1,priority});
             await newTicket.save();
             res.status(200).json({ success: true, message: 'Ticket created successfully', Ticket: newTicket.ticketId });
         
@@ -1220,7 +1275,7 @@ app.post('/api/transcript', async (req, res) => {
 
 //STORE COURSE
 app.post('/api/course', async (req, res) => {
-    const { user, content, type, mainTopic } = req.body;
+    const { user,fname,lname,email,phone, content, type, mainTopic } = req.body;
 
     unsplash.search.getPhotos({
         query: mainTopic,
@@ -1231,7 +1286,7 @@ app.post('/api/course', async (req, res) => {
         const photos = result.response.results;
         const photo = photos[0].urls.regular
         try {
-            const newCourse = new Course({ user, content, type, mainTopic, photo });
+            const newCourse = new Course({ user,fname,lname,email,phone, content, type, mainTopic, photo });
             await newCourse.save();
             res.json({ success: true, message: 'Course created successfully', courseId: newCourse._id });
         } catch (error) {
@@ -2209,14 +2264,14 @@ app.post('/api/dashboard', async (req, res) => {
 });
 
 //GET USERS
-app.get('/api/getusers', async (req, res) => {
-    try {
-        const users = await User.find({});
-        res.json(users);
-    } catch (error) {
-        //DO NOTHING
-    }
-});
+// app.get('/api/getusers', async (req, res) => {
+//     try {
+//         const users = await User.find({});
+//         res.json(users);
+//     } catch (error) {
+//         //DO NOTHING
+//     }
+// });
 
 //GET COURES
 app.get('/api/getcourses', async (req, res) => {
@@ -2239,15 +2294,15 @@ app.get('/api/getpaid', async (req, res) => {
 });
 
 //GET ADMINS
-app.get('/api/getadmins', async (req, res) => {
-    try {
-        const users = await User.find({ email: { $nin: await getEmailsOfAdmins() } });
-        const admins = await Admin.find({});
-        res.json({ users: users, admins: admins });
-    } catch (error) {
-        //DO NOTHING
-    }
-});
+// app.get('/api/getadmins', async (req, res) => {
+//     try {
+//         const users = await User.find({ email: { $nin: await getEmailsOfAdmins() } });
+//         const admins = await Admin.find({});
+//         res.json({ users: users, admins: admins });
+//     } catch (error) {
+//         //DO NOTHING
+//     }
+// });
 
 async function getEmailsOfAdmins() {
     const admins = await Admin.find({});
