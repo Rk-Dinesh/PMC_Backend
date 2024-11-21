@@ -93,6 +93,7 @@ const userSchema = new mongoose.Schema({
 });
 const ImageSchema = new mongoose.Schema({
     name:  String,
+    user:String,
     image:  String,
   });
 
@@ -589,6 +590,16 @@ app.get('/api/getadmin', async (req, res) => {
     }
 });
 
+app.get('/api/getadminbyid/:id', async (req, res) => {
+    try {
+        const {id} = req.params
+        const user = await Admin.findByIdAndUpdate(id); 
+        res.status(200).json({ success: true, user:user }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
 app.delete('/api/deleteadmin/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -608,16 +619,48 @@ app.delete('/api/deleteadmin/:id', async (req, res) => {
 //profileImage:
 
 app.post('/api/images', async (req, res) => {
-    const { name,image } = req.body;
+    const { name, user, image } = req.body;
+
     try {
-            const newImage = new ProfileImage({ name,image});
-            await newImage.save();
-            res.status(200).json({ success: true, message: 'Profile Image created successfully', Image: newImage });
-        
+        const existingImage = await ProfileImage.findOne({ user });
+        if (existingImage) {
+            const updatedImage = await ProfileImage.findOneAndUpdate(
+                { user },
+                { name, image },
+                { new: true }
+            );
+            return res.status(200).json({
+                success: true,
+                message: 'Image updated successfully',
+                image: updatedImage,
+            });
+        }
+        const newImage = new ProfileImage({ name, user, image });
+        await newImage.save();
+        res.status(201).json({
+            success: true,
+            message: 'Profile image created successfully',
+            image: newImage,
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message,
+        });
     }
 });
+
+app.get('/api/getimagebyid', async (req, res) => {
+    const { user } = req.query;
+try {
+    const image = await ProfileImage.findOne({user}); 
+    res.status(200).json({ success: true, user:image }); 
+} catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+}
+});
+
   
 
 //RoleAcessLevel
@@ -777,10 +820,10 @@ app.get('/api/getusers', async (req, res) => {
     }
 });
 
-app.get('/api/getusersbyid', async (req, res) => {
+app.get('/api/getusersbyid/:id', async (req, res) => {
     try {
-        const {id} = req.query
-        const user = await User.findOne({id}); 
+        const {id} = req.params
+        const user = await User.findByIdAndUpdate(id); 
         res.status(200).json({ success: true, user:user }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
