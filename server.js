@@ -91,9 +91,10 @@ const userSchema = new mongoose.Schema({
     verifyTokenExpires: { type: Date, default: null },
     verified: { type: Boolean, default: true },
 });
-const userprofile = new mongoose.Schema({
-    user:String,
-});
+const ImageSchema = new mongoose.Schema({
+    name:  String,
+    image:  String,
+  });
 
 const courseSchema = new mongoose.Schema({
     user: String,
@@ -170,6 +171,7 @@ const statusSchema = new mongoose.Schema({
 
 //MODEL
 const User = mongoose.model('User', userSchema);
+const ProfileImage = mongoose.model('ProfileImage',ImageSchema);
 const Roles = mongoose.model('Role', RoleAccessLevelSchema);
 const Course = mongoose.model('Course', courseSchema);
 const SubscriptionPlan = mongoose.model('SubscriptionPlan', subscriptionPlanSchema);
@@ -580,8 +582,8 @@ app.post('/api/reset-password', async (req, res) => {
 
 app.get('/api/getadmin', async (req, res) => {
     try {
-        const User = await Admin.find(); 
-        res.status(200).json({ success: true, User:User }); 
+        const user = await Admin.find({}); 
+        res.status(200).json({ success: true, user:user }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -602,6 +604,21 @@ app.delete('/api/deleteadmin/:id', async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 });
+
+//profileImage:
+
+app.post('/api/images', async (req, res) => {
+    const { name,image } = req.body;
+    try {
+            const newImage = new ProfileImage({ name,image});
+            await newImage.save();
+            res.status(200).json({ success: true, message: 'Profile Image created successfully', Image: newImage });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+  
 
 //RoleAcessLevel
 app.post('/api/roleaccesslevel', async (req, res) => {
@@ -753,8 +770,18 @@ app.post("/api/verify", async (req, res) => {
 
 app.get('/api/getusers', async (req, res) => {
     try {
-        const User = await User.find(); 
-        res.status(200).json({ success: true, User:User }); 
+        const user = await User.find(); 
+        res.status(200).json({ success: true, user:user }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/getusersbyid', async (req, res) => {
+    try {
+        const {id} = req.query
+        const user = await User.findOne({id}); 
+        res.status(200).json({ success: true, user:user }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -905,11 +932,11 @@ app.get('/api/getsubscriptionplan', async (req, res) => {
 
 //TICEKT
 app.post('/api/ticket', async (req, res) => {
-    const { user,fname,lname,email,phone,category,subject,desc1,priority } = req.body;
+    const { user,fname,lname,email,phone,category,subject,desc1,priority,status } = req.body;
     try {
             const token =crypto.randomBytes(2).toString('hex');
             const ticketId = `Ticket${token}`
-            const newTicket = new Ticket({user,fname,lname,email,phone,ticketId,category,subject,desc1,priority});
+            const newTicket = new Ticket({user,fname,lname,email,phone,ticketId,category,subject,desc1,priority,status:"New Ticket"});
             await newTicket.save();
             res.status(200).json({ success: true, message: 'Ticket created successfully', Ticket: newTicket.ticketId });
         
@@ -2263,15 +2290,8 @@ app.post('/api/dashboard', async (req, res) => {
     res.json({ users: users, courses: courses, total: total, sum: sum, paid: paid, videoType: videoType, textType: textType, free: free, admin: admin });
 });
 
-//GET USERS
-// app.get('/api/getusers', async (req, res) => {
-//     try {
-//         const users = await User.find({});
-//         res.json(users);
-//     } catch (error) {
-//         //DO NOTHING
-//     }
-// });
+
+
 
 //GET COURES
 app.get('/api/getcourses', async (req, res) => {
