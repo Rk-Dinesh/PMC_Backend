@@ -616,6 +616,27 @@ app.delete('/api/deleteadmin/:id', async (req, res) => {
     }
 });
 
+app.put('/api/adminupdate/:id', async (req, res) => {
+    const { id } = req.params;
+    const { fname, lname, email, phone, dob, designation } = req.body;
+
+    try {
+        const updatedAdmin = await Admin.findByIdAndUpdate(
+            id,
+            { fname, lname, email, phone, dob, designation},
+            { new: true, runValidators: true } 
+        );
+
+        if (!updatedAdmin) {
+            return res.status(404).json({ success: false, message: 'Admin not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Admin updated successfully', admin: updatedAdmin });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
 //profileImage:
 
 app.post('/api/images', async (req, res) => {
@@ -778,7 +799,7 @@ app.post('/api/usersignin', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid  phone' });
         }
 
-        return res.status(200).json({ success: true, message: 'SignIn successful', userData: user });
+        return res.status(200).json({ success: true, message: 'SignIn successful', userId: user });
 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Invalid email or password' });
@@ -892,7 +913,10 @@ app.post('/api/phoneupdate', async (req, res) => {
     }
 });
 
-//SEND MAIL
+
+
+
+//SEND MAILz
 app.post('/api/data', async (req, res) => {
     const receivedData = req.body;
 
@@ -1117,7 +1141,7 @@ app.post('/api/priority', async (req, res) => {
     }
 });
 
-app.put('/api/priorty/:id', async (req, res) => {
+app.put('/api/priority/:id', async (req, res) => {
     const { id } = req.params;
     const { priority } = req.body;
 
@@ -1138,7 +1162,7 @@ app.put('/api/priorty/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/priorty/:id', async (req, res) => {
+app.delete('/api/priority/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -1154,10 +1178,10 @@ app.delete('/api/priorty/:id', async (req, res) => {
     }
 });
 
-app.get('/api/getpriorty', async (req, res) => {
+app.get('/api/getpriority', async (req, res) => {
     try {
-        const Priority = await Category.find(); 
-        res.status(200).json({ success: true, Priority:Priority }); 
+        const priority = await Priority.find(); 
+        res.status(200).json({ success: true, priority:priority }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -1214,8 +1238,8 @@ app.delete('/api/status/:id', async (req, res) => {
 
 app.get('/api/getstatus', async (req, res) => {
     try {
-        const Status = await Status.find(); 
-        res.status(200).json({ success: true, Status:Status }); 
+        const status = await Status.find(); 
+        res.status(200).json({ success: true, status:status }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
