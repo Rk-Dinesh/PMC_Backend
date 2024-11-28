@@ -876,12 +876,22 @@ app.post('/api/emailupdate', async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: 'User  not found' });
         }
+        const verify = await User.findOne({email});
+        if (verify) {
+            return res.status(404).json({success:false, message: "User with this email already exists"})
+        }
         user.email = email;
         await user.save(); 
         const updatedTickets = await Ticket.updateMany({ phone }, { $set: { email } });
 
         if (updatedTickets.modifiedCount === 0) {
             return res.status(200).json({ success: false, message: 'No tickets found to update' });
+        }
+
+        const updatedCourses = await Course.updateMany({ phone }, { $set: { email } });
+
+        if (updatedCourses.modifiedCount === 0) {
+            return res.status(200).json({ success: false, message: 'No courses found to update' });
         }
 
         res.status(200).json({ success: true, message: 'Email updated successfully' });
@@ -899,12 +909,23 @@ app.post('/api/phoneupdate', async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: 'User  not found' });
         }
+
+        const verify = await User.findOne({phone});
+        if (verify) {
+            return res.status(404).json({success:false, message: "User with this Phone already exists"})
+        }
         user.phone = phone;
         await user.save(); 
         const updatedTickets = await Ticket.updateMany({ email }, { $set: { phone } });
 
         if (updatedTickets.modifiedCount === 0) {
             return res.status(200).json({ success: false, message: 'No tickets found to update' });
+        }
+
+        const updatedCourses = await Course.updateMany({ email }, { $set: { phone } });
+
+        if (updatedCourses.modifiedCount === 0) {
+            return res.status(200).json({ success: false, message: 'No courses found to update' });
         }
 
         res.status(200).json({ success: true, message: 'Phone updated successfully' });
