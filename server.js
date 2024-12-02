@@ -170,6 +170,11 @@ const statusSchema = new mongoose.Schema({
     color:String
 });
 
+const TaxSchema = new mongoose.Schema({
+    taxname: String,
+    percentage:String
+});
+
 //MODEL
 const User = mongoose.model('User', userSchema);
 const ProfileImage = mongoose.model('ProfileImage',ImageSchema);
@@ -184,6 +189,7 @@ const Ticket = mongoose.model('Ticket',TicketSchema);
 const Category = mongoose.model('Category',categorySchema);
 const Priority = mongoose.model('Priorty',prioritySchema);
 const Status = mongoose.model('Status',statusSchema);
+const Tax = mongoose.model('Tax',TaxSchema);
 
 app.post("/order", async (req, res) => {
     try {
@@ -1090,6 +1096,17 @@ app.get('/api/getticketbyid', async (req, res) => {
     }
 });
 
+app.get('/api/getticketuserbyid', async (req, res) => {
+    const { user} = req.query;
+try {
+    
+    const ticket = await Ticket.find(user); 
+    res.status(200).json({ success: true, ticket:ticket }); 
+} catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+}
+});
+
 //category
 app.post('/api/category', async (req, res) => {
     const { category } = req.body;
@@ -1261,6 +1278,66 @@ app.get('/api/getstatus', async (req, res) => {
     try {
         const status = await Status.find(); 
         res.status(200).json({ success: true, status:status }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+//tax
+
+app.post('/api/tax', async (req, res) => {
+    const { taxname,percentage } = req.body;
+    try {
+            const newTax = new Tax({ taxname,percentage});
+            await newTax.save();
+            res.status(200).json({ success: true, message: 'Tax created successfully', tax: newTax });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.put('/api/taxupdate/:id', async (req, res) => {
+    const { id } = req.params;
+    const { taxname,percentage } = req.body;
+
+    try {
+        const updatedTax = await Tax.findByIdAndUpdate(
+            id,
+            {taxname,percentage },
+            { new: true, runValidators: true } // Returns the updated document and runs validators
+        );
+
+        if (!updatedTax) {
+            return res.status(404).json({ success: false, message: 'Tax not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Tax updated successfully', tax: updatedTax });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.delete('/api/tax/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedTax = await Tax.findByIdAndDelete(id);
+
+        if (!deletedTax) {
+            return res.status(404).json({ success: false, message: 'Tax not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Tax deleted successfully', tax: deletedTax });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.get('/api/gettax', async (req, res) => {
+    try {
+        const tax = await Tax.find(); 
+        res.status(200).json({ success: true, tax:tax }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
