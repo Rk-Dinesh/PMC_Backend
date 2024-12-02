@@ -1246,7 +1246,7 @@ app.put('/api/status/:id', async (req, res) => {
         const updatedStatus = await Status.findByIdAndUpdate(
             id,
             {status,color },
-            { new: true, runValidators: true } // Returns the updated document and runs validators
+            { new: true, runValidators: true } 
         );
 
         if (!updatedStatus) {
