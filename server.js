@@ -121,6 +121,12 @@ const subscriptionPlanSchema = new mongoose.Schema({
 });
 const subscriptionSchema = new mongoose.Schema({
     user: String,
+    fname: String,
+    lname: String,
+    phone:String,
+    email:String,
+    amount:String,
+    course:String,
     subscription: String,
     subscriberId: String,
     plan: String,
@@ -259,6 +265,23 @@ app.post("/order", async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
+
+app.post('/api/usersubscription',async(req,res) => {
+    const {user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method} = req.body;
+    try {
+        const newSub = new Subscription({ user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method });
+        await newSub.save();
+
+        await User.findOneAndUpdate(
+            { _id: user },
+            { $set: { type: plan } }
+        );
+        res.status(200).json({ success: true, message: 'NewSubscription created successfully', newSub: newSub });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+})
   
 
 //REQUEST
@@ -291,17 +314,17 @@ app.post('/api/updatecount', async (req, res) => {
 
     try {
         const replace = await Count.findOne({ user });
+        if (!replace) {
+            return res.status(404).json({ success: false, message: 'User  not found' });
+        }
         const result = await Count.findOneAndUpdate(
             { user: user },
-            { $set: { count:  replace.count-1 } },
+            { $set: { count: replace.count - 1 } },
             { new: true }  
         );
+        
 
-        if (result) {
-            res.json({ success: true, message: 'Count updated successfully' });
-        } else {
-            res.status(404).json({ success: false, message: 'User not found' });
-        }
+        res.json({ success: true, message: 'Count updated successfully', count: result.count });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -496,7 +519,7 @@ app.post('/api/adminsignin', async (req, res) => {
   });
 
 app.post('/api/forgot', async (req, res) => {
-    const { email, name, company, logo } = req.body;
+    const { email,  company } = req.body;
 
     try {
         const admin = await Admin.findOne({ email });
@@ -515,7 +538,7 @@ app.post('/api/forgot', async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL,
             to: admin.email,
-            subject: `${name} Password Reset`,
+            subject: `Your Password Reset`,
             html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
             <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
             <html lang="en">
@@ -531,7 +554,7 @@ app.post('/api/forgot', async (req, res) => {
                       <table align="center" border="0" cellPadding="0" cellSpacing="0" role="presentation" width="100%" style="margin-top:32px">
                         <tbody>
                           <tr>
-                            <td><img alt="Vercel" src="${logo}" width="40" height="37" style="display:block;outline:none;border:none;text-decoration:none;margin-left:auto;margin-right:auto;margin-top:0px;margin-bottom:0px" /></td>
+                            <td><img alt="Vercel" src="" width="40" height="37" style="display:block;outline:none;border:none;text-decoration:none;margin-left:auto;margin-right:auto;margin-top:0px;margin-bottom:0px" /></td>
                           </tr>
                         </tbody>
                       </table>
