@@ -1175,6 +1175,31 @@ app.post('/api/subscriptionplan', async (req, res) => {
     }
 });
 
+app.post('/api/addusertoplan', async (req, res) => {
+    const { packagename, email, course, user } = req.body;
+    try {
+        await User.findOneAndUpdate(
+            { email: email },
+            { $set: { type: packagename } }
+        );
+
+        const existingUser  = await Count.findOne({ user });
+
+        if (existingUser ) {
+            existingUser .count = course;
+            await existingUser .save();
+            return res.json({ success: true, message: 'Count updated for existing user' });
+        }
+        const course_count = new Count({ user, count: course });
+        await course_count.save();
+        return res.json({ success: true, message: 'New user added with course count' });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'An error occurred', error: error.message });
+    }
+});
+
 app.put('/api/subscriptionplan/:id', async (req, res) => {
     const { id } = req.params;
     const { packagename, price, course, tax, subtopic, coursetype } = req.body;
@@ -1765,6 +1790,23 @@ app.get('/api/courses', async (req, res) => {
         });
     } catch (error) {
         res.status(500).send('Internal Server Error');
+    }
+});
+
+//Delete
+
+app.delete('/api/deletecourse/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deleteCourse = await Course.findByIdAndDelete(id);
+
+        if (!deleteCourse) {
+            return res.status(404).json({ success: false, message: 'Delete not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Course deleted successfully', deleteCourse: deleteCourse });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 });
 
