@@ -31,8 +31,12 @@ app.use(cors({
 }));
 const PORT = process.env.PORT;
 app.use(bodyParser.json());
-const db = mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true }).then((open)=>(console.log('connected to DB'))).catch((err)=>(console.log('Not connected to Db')));
-const gfs = new mongoose.mongo.GridFSBucket(mongoose.connection,{bucketName:"profileImage"})
+const conn = mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true }).then((open)=>(console.log('connected to DB'))).catch((err)=>(console.log('Not connected to Db')));
+const db = mongoose.connection;
+const gfs = new mongoose.mongo.GridFSBucket(db, {
+    bucketName: 'Attachments',
+  });
+
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
@@ -53,7 +57,17 @@ const storage = multer.diskStorage({
     },
 });
 
+const upload1 = multer({
+    dest: "attachments",
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50 MB
+      files: 5,
+    },
+  });
+  
+
 const upload = multer({ storage: storage });
+
 
 //SCHEMA
 const adminSchema = new mongoose.Schema({
@@ -193,6 +207,17 @@ const TaxSchema = new mongoose.Schema({
     percentage:String
 });
 
+const HelpSchema = new mongoose.Schema({
+    user: String,
+    ticketId:String,
+    createdby:String,
+    attachment: String,
+    attachment_id:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'GridFSBucket',
+      },
+},{timestamps:true});
+
 //MODEL
 const User = mongoose.model('User', userSchema);
 const ProfileImage = mongoose.model('ProfileImage',ImageSchema);
@@ -208,6 +233,7 @@ const Category = mongoose.model('Category',categorySchema);
 const Priority = mongoose.model('Priorty',prioritySchema);
 const Status = mongoose.model('Status',statusSchema);
 const Tax = mongoose.model('Tax',TaxSchema);
+const Help = mongoose.model('Help',HelpSchema);
 
 app.post("/order", async (req, res) => {
     try {
@@ -294,6 +320,87 @@ app.post('/api/usersubscription',async(req,res) => {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 })
+
+app.post('/post', upload1.array("files", 5), async (req, res) => {
+    try {
+      const files = req.files;
+      const user = req.body.user;
+      const ticketId = req.body.ticketId;
+      const createdby = req.body.createdby; 
+  
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
+  
+      if (files.length > 5) {
+        return res.status(400).json({ message: "File count exceeds the limit of 5" });
+      }
+  
+      const attachments = [];
+  
+      for (const file of files) {
+        const randomName = crypto.randomBytes(10).toString("hex");
+        const writeStream = gfs.openUploadStream(randomName, {
+          _id: new mongoose.Types.ObjectId(),
+        });
+  
+        fs.createReadStream(file.path).pipe(writeStream);
+  
+        const attachment = new Help({
+          user,
+          ticketId,
+          createdby,
+          attachment_id: writeStream.id,
+          attachment: randomName,
+        });
+  
+        await attachment.save();
+        attachments.push(attachment);
+      }
+      for (const file of files) {
+        fs.unlinkSync(file.path);
+      }
+  
+      res.status(200).json(attachments);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Failed to upload files" });
+    }
+  });
+  
+
+
+app.get('/api/getattachments', async (req, res) => {
+    const { ticketId } = req.body; 
+    try {
+        const attachments = await Help.find({ticketId});
+        if (attachments.length > 0) {
+            return res.json({ success: true, attachments });
+        } else {
+            return res.json({ success: false, message: 'No attachments found for this ticketId ' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/file/:filename', async (req, res) => {
+    const { filename } = req.params;
+    try {
+      const file = await gfs.find({ filename }).toArray();
+  
+      if (!file || file.length === 0) {
+        return res.status(404).json({ success: false, message: 'File not found' });
+      }
+  
+      const readStream = gfs.openDownloadStream(file[0]._id);
+      res.set('Content-Type', file[0].contentType);
+      readStream.pipe(res);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
   
 
 //REQUEST
