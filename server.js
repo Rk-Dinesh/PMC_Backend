@@ -15,7 +15,10 @@ const showdown = require('showdown');
 const axios = require('axios');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Razorpay = require("razorpay");
-const { log } = require('console');
+const csvParser = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 
 //INITIALIZE
 const app = express();
@@ -42,6 +45,15 @@ const transporter = nodemailer.createTransport({
 });
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const unsplash = createApi({ accessKey: process.env.UNSPLASH_ACCESS_KEY });
+
+const storage = multer.diskStorage({
+    destination: 'excel',
+    filename: (req, file, cb) => {
+        cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+    },
+});
+
+const upload = multer({ storage: storage });
 
 //SCHEMA
 const adminSchema = new mongoose.Schema({
@@ -666,6 +678,35 @@ app.put('/api/adminupdate/:id', async (req, res) => {
     }
 });
 
+app.post('/api/adminuploadcsv', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const csvs = [];
+    const filePath = path.join(__dirname, './excel', req.file.filename);
+
+    fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
+            csvs.push(row);
+        })
+        .on('end', async () => {
+       
+            try {
+                const result = await Admin.insertMany(csvs); 
+                res.status(200).json({ success: true, message: 'Data uploaded successfully', data: result });
+            } catch (error) {
+                res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+            } finally {
+                fs.unlinkSync(filePath);
+            }
+        })
+        .on('error', (error) => {
+            res.status(500).json({ success: false, message: 'Error reading CSV file', error: error.message });
+        });
+});
+
 //profileImage:
 
 app.post('/api/images', async (req, res) => {
@@ -963,7 +1004,34 @@ app.post('/api/phoneupdate', async (req, res) => {
     }
 });
 
+app.post('/api/useruploadcsv', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
 
+    const csvs = [];
+    const filePath = path.join(__dirname, './excel', req.file.filename);
+
+    fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
+            csvs.push(row);
+        })
+        .on('end', async () => {
+       
+            try {
+                const result = await User.insertMany(csvs); 
+                res.status(200).json({ success: true, message: 'Data uploaded successfully', data: result });
+            } catch (error) {
+                res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+            } finally {
+                fs.unlinkSync(filePath);
+            }
+        })
+        .on('error', (error) => {
+            res.status(500).json({ success: false, message: 'Error reading CSV file', error: error.message });
+        });
+});
 
 
 //SEND MAILz
