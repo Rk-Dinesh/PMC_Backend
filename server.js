@@ -392,11 +392,11 @@ app.post('/post', upload1.array("files", 5), async (req, res) => {
 
 
 app.get('/api/getattachments', async (req, res) => {
-    const { ticketId } = req.body; 
+    const { ticketId } = req.query; 
     try {
         const attachments = await Help.find({ticketId});
         if (attachments.length > 0) {
-            return res.json({ success: true, attachments });
+            return res.json({ success: true, attachments:attachments });
         } else {
             return res.json({ success: false, message: 'No attachments found for this ticketId ' });
         }
@@ -884,7 +884,7 @@ try {
 
 //RoleAcessLevel
 app.post('/api/roleaccesslevel', async (req, res) => {
-    const { role_name, accessLevels, status, created_by_user } = req.body;
+    const { role_name, accessLevels, status } = req.body;
 
     try {
 
@@ -906,7 +906,7 @@ app.post('/api/roleaccesslevel', async (req, res) => {
         });
 
         const result = await roleAccessLevel.save();
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             message: "Role access level created successfully",
             data: result
@@ -918,6 +918,41 @@ app.post('/api/roleaccesslevel', async (req, res) => {
             error: error.message
         });
     }
+});
+
+app.delete('/api/roles/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedRole = await Roles.findByIdAndDelete(id);
+
+        if (!deletedRole) {
+            return res.status(404).json({ success: false, message: 'Role not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Roles deleted successfully', role: deletedRole });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
+app.get('/api/getroles', async (req, res) => {
+    try {
+        const role = await Roles.find(); 
+        res.status(200).json({ success: true, role:role }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/getrolebyid', async (req, res) => {
+    const { rolename } = req.query;
+try {
+    const role = await Roles.findOne({rolename}); 
+    res.status(200).json({ success: true, role:role }); 
+} catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+}
 });
 
 
