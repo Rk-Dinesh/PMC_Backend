@@ -321,6 +321,27 @@ app.post('/api/usersubscription',async(req,res) => {
     }
 })
 
+app.get('/api/getallsubs', async (req, res) => {
+    try {
+        const sub = await Subscription.find(); 
+        res.status(200).json({ success: true, sub:sub }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/getsubsbyid', async (req, res) => {
+        const { user } = req.query;
+    try {
+        const sub = await Subscription.find({user}); 
+        res.status(200).json({ success: true, sub:sub }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+
+
 app.post('/post', upload1.array("files", 5), async (req, res) => {
     try {
       const files = req.files;
@@ -1176,21 +1197,26 @@ app.post('/api/subscriptionplan', async (req, res) => {
 });
 
 app.post('/api/addusertoplan', async (req, res) => {
-    const { packagename, email, course, user } = req.body;
+    const { packagename, email, course } = req.body;
     try {
         await User.findOneAndUpdate(
             { email: email },
             { $set: { type: packagename } }
         );
 
-        const existingUser  = await Count.findOne({ user });
+        const wantuser = await User.findOne({email})
+        if (!wantuser) {
+            return res.status().json({ success: false, message: 'User not found' });
+        }
+
+        const existingUser  = await Count.findOne({ user:wantuser._id });
 
         if (existingUser ) {
             existingUser .count = course;
             await existingUser .save();
             return res.json({ success: true, message: 'Count updated for existing user' });
         }
-        const course_count = new Count({ user, count: course });
+        const course_count = new Count({ user:wantuser._id, count: course });
         await course_count.save();
         return res.json({ success: true, message: 'New user added with course count' });
 
@@ -1241,6 +1267,16 @@ app.get('/api/getsubscriptionplan', async (req, res) => {
     try {
         const plans = await SubscriptionPlan.find(); 
         res.status(200).json({ success: true, plans:plans }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/getsubscriptionplanbyid/:id', async (req, res) => {
+    try {
+        const {id} = req.params
+        const plan = await SubscriptionPlan.findByIdAndUpdate(id); 
+        res.status(200).json({ success: true, plan:plan }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
