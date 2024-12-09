@@ -147,6 +147,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
 });
 const subscriptionSchema = new mongoose.Schema({
     user: String,
+    recieptId:String,
     fname: String,
     lname: String,
     phone:String,
@@ -307,6 +308,8 @@ app.post("/order", async (req, res) => {
 app.post('/api/usersubscription',async(req,res) => {
     const {user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method} = req.body;
     try {
+         const token =crypto.randomBytes(2).toString('hex');
+            const recieptId = `Reciept${token}`
         const newSub = new Subscription({ user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method });
         await newSub.save();
 
@@ -340,6 +343,15 @@ app.get('/api/getsubsbyid', async (req, res) => {
     }
 });
 
+app.get('/api/getsubonid/:id', async (req, res) => {
+    try {
+        const {id} = req.params
+        const sub = await Subscription.findByIdAndUpdate(id); 
+        res.status(200).json({ success: true, sub:sub }); 
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
 
 
 app.post('/post', upload1.array("files", 5), async (req, res) => {
@@ -919,6 +931,42 @@ app.post('/api/roleaccesslevel', async (req, res) => {
         });
     }
 });
+
+app.put('/api/update/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role_name, accessLevels, status } = req.body;
+
+    if (!id || !role_name || !accessLevels || !status) {
+      return res.status(400).json({ 
+        status: false, 
+        message: "Invalid input. Please provide all required fields." 
+      });
+    }
+
+    const updatedRole = await Roles.findByIdAndUpdate(
+      id, 
+      { role_name, accessLevels, status },
+      { new: true } 
+    );
+
+    if (!updatedRole) {
+      return res.status(404).json({ 
+        status: false, 
+        message: "Role not found. Update failed." 
+      });
+    }
+
+    return res.status(200).json({ 
+      status: true, 
+      message: "Role updated successfully", 
+      data: updatedRole 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+});
+
 
 app.delete('/api/roles/:id', async (req, res) => {
     const { id } = req.params;
