@@ -140,10 +140,11 @@ const courseSchema = new mongoose.Schema({
 const subscriptionPlanSchema = new mongoose.Schema({
     packagename: String,
     price: Number,
-    course: String,
+    course: Number,
     tax: Number,
     subtopic: String,
     coursetype: String,
+    stripeId:String
 });
 const subscriptionSchema = new mongoose.Schema({
     user: String,
@@ -158,6 +159,7 @@ const subscriptionSchema = new mongoose.Schema({
     subscriberId: String,
     plan: String,
     method: String,
+    tax:String,
     date: { type: Date, default: Date.now },
     active: { type: Boolean, default: true }
 });
@@ -306,11 +308,11 @@ app.post("/order", async (req, res) => {
 });
 
 app.post('/api/usersubscription',async(req,res) => {
-    const {user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method} = req.body;
+    const {user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method,tax} = req.body;
     try {
          const token =crypto.randomBytes(2).toString('hex');
             const recieptId = `Reciept${token}`
-        const newSub = new Subscription({ user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method });
+        const newSub = new Subscription({ user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method,tax });
         await newSub.save();
 
         await User.findOneAndUpdate(
@@ -1268,9 +1270,9 @@ app.post('/api/data', async (req, res) => {
 
 //SUBSCRIPTION PLAN
 app.post('/api/subscriptionplan', async (req, res) => {
-    const { packagename, price, course,tax,subtopic, coursetype } = req.body;
+    const { packagename, price, course,tax,subtopic, coursetype,stripeId } = req.body;
     try {
-            const newPlan = new SubscriptionPlan({ packagename, price, course,tax,subtopic, coursetype});
+            const newPlan = new SubscriptionPlan({ packagename, price, course,tax,subtopic, coursetype,stripeId});
             await newPlan.save();
             res.status(200).json({ success: true, message: 'Plan created successfully', Plan: newPlan });
         
@@ -1311,12 +1313,12 @@ app.post('/api/addusertoplan', async (req, res) => {
 
 app.put('/api/subscriptionplan/:id', async (req, res) => {
     const { id } = req.params;
-    const { packagename, price, course, tax, subtopic, coursetype } = req.body;
+    const { packagename, price, course, tax, subtopic, coursetype,stripeId } = req.body;
 
     try {
         const updatedPlan = await SubscriptionPlan.findByIdAndUpdate(
             id,
-            { packagename, price, course, tax, subtopic, coursetype },
+            { packagename, price, course, tax, subtopic, coursetype,stripeId },
             { new: true, runValidators: true } // Returns the updated document and runs validators
         );
 
