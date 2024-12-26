@@ -154,12 +154,12 @@ const subscriptionSchema = new mongoose.Schema({
     phone:String,
     email:String,
     amount:String,
-    course:String,
+    course:Number,
     subscription: String,
     subscriberId: String,
     plan: String,
     method: String,
-    tax:String,
+    tax:Number,
     date: { type: Date, default: Date.now },
     active: { type: Boolean, default: true }
 });
@@ -312,7 +312,7 @@ app.post('/api/usersubscription',async(req,res) => {
     try {
          const token =crypto.randomBytes(2).toString('hex');
             const recieptId = `Reciept${token}`
-        const newSub = new Subscription({ user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method,tax });
+        const newSub = new Subscription({ recieptId,user,fname,lname,email,phone,amount,course, subscription, subscriberId, plan, method,tax });
         await newSub.save();
 
         await User.findOneAndUpdate(
