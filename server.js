@@ -30,7 +30,7 @@ app.use(cors({
     "Access-Control-Allow-Headers": "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers"
 }));
 const PORT = process.env.PORT;
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit:'100mb'}));
 const conn = mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true }).then((open)=>(console.log('connected to DB'))).catch((err)=>(console.log('Not connected to Db')));
 const db = mongoose.connection;
 const gfs = new mongoose.mongo.GridFSBucket(db, {
