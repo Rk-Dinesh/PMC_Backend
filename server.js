@@ -1124,18 +1124,21 @@ app.get('/api/getusers', async (req, res) => {
     }
 });
 
-app.get('/api/getusersbyid/:id', async (req, res) => {
+app.get('/api/getusersbyid', async (req, res) => {
     try {
-        const {id} = req.params
-        const user = await User.findByIdAndUpdate(id); 
+        const {id} = req.query
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        } 
         res.status(200).json({ success: true, user:user }); 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
 
-app.delete('/api/deleteuser/:id', async (req, res) => {
-    const { id } = req.params;
+app.delete('/api/deleteuser', async (req, res) => {
+    const { id } = req.query;
 
     try {
         const deletedUser = await User.findByIdAndDelete(id);
