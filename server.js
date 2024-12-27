@@ -849,6 +849,25 @@ app.post('/api/adminuploadcsv', upload.single('file'), async (req, res) => {
         });
 });
 
+app.post('/api/changepassword', async (req, res) => {
+    const { email } = req.query;
+    const { confirmpassword } = req.body;
+
+    try {
+        const admin = await Admin.findOne({ email });
+        if (!admin) {
+            return res.status(404).json({ success: false, message: 'admin  not found' });
+        }
+       
+        admin.password = confirmpassword;
+        await admin.save(); 
+    
+        res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+});
+
 //profileImage:
 
 app.post('/api/images', async (req, res) => {
