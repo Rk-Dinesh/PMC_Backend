@@ -157,6 +157,7 @@ const courseSchema = new mongoose.Schema({
 const subscriptionPlanSchema = new mongoose.Schema({
   packagename: String,
   price: Number,
+  inr:Number,
   course: Number,
   tax: Number,
   subtopic: String,
@@ -1442,6 +1443,15 @@ app.delete("/api/deleteuser", async (req, res) => {
   const { id } = req.query;
 
   try {
+    await Promise.all([
+      Course.deleteMany({ user: id }),
+      Help.deleteMany({ user: id }),
+      Ticket.deleteMany({ user: id }),
+      Subscription.deleteMany({ user: id }),
+      ProfileImage.deleteOne({ user: id }),
+      Count.deleteOne({ user: id }),
+    ]);
+
     const deletedUser = await User.findByIdAndDelete(id);
 
     if (!deletedUser) {
@@ -1450,23 +1460,19 @@ app.delete("/api/deleteuser", async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "User deleted successfully",
-        User: deletedUser,
-      });
+    res.status(200).json({
+      success: true,
+      message: "User and associated data deleted successfully",
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
+
 
 app.post("/api/emailupdate", async (req, res) => {
   const { phone } = req.query;
@@ -1654,12 +1660,13 @@ app.post("/api/data", async (req, res) => {
 
 //SUBSCRIPTION PLAN
 app.post("/api/subscriptionplan", async (req, res) => {
-  const { packagename, price, course, tax, subtopic, coursetype, stripeId } =
+  const { packagename, price,inr, course, tax, subtopic, coursetype, stripeId } =
     req.body;
   try {
     const newPlan = new SubscriptionPlan({
       packagename,
       price,
+      inr,
       course,
       tax,
       subtopic,
@@ -1722,13 +1729,13 @@ app.post("/api/addusertoplan", async (req, res) => {
 
 app.put("/api/subscriptionplan/:id", async (req, res) => {
   const { id } = req.params;
-  const { packagename, price, course, tax, subtopic, coursetype, stripeId } =
+  const { packagename, price,inr, course, tax, subtopic, coursetype, stripeId } =
     req.body;
 
   try {
     const updatedPlan = await SubscriptionPlan.findByIdAndUpdate(
       id,
-      { packagename, price, course, tax, subtopic, coursetype, stripeId },
+      { packagename, price,inr, course, tax, subtopic, coursetype, stripeId },
       { new: true, runValidators: true } // Returns the updated document and runs validators
     );
 
