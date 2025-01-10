@@ -157,7 +157,7 @@ const courseSchema = new mongoose.Schema({
 const subscriptionPlanSchema = new mongoose.Schema({
   packagename: String,
   price: Number,
-  inr:Number,
+  inr: Number,
   course: Number,
   tax: Number,
   subtopic: String,
@@ -380,21 +380,17 @@ app.post("/api/usersubscription", async (req, res) => {
     await newSub.save();
 
     await User.findOneAndUpdate({ _id: user }, { $set: { type: plan } });
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "NewSubscription created successfully",
-        newSub: newSub,
-      });
+    res.status(200).json({
+      success: true,
+      message: "NewSubscription created successfully",
+      newSub: newSub,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -514,7 +510,7 @@ app.get("/api/file/:filename", async (req, res) => {
 });
 
 app.post("/api/policies", async (req, res) => {
-  const {  terms, privacy, cancel, refund, billing } = req.body;
+  const { terms, privacy, cancel, refund, billing } = req.body;
 
   try {
     const updatedPolicy = await Policies.findOneAndUpdate(
@@ -542,30 +538,29 @@ app.post("/api/policies", async (req, res) => {
   }
 });
 
-app.get('/api/policies', async (req, res) => {
-    try {
-        const policy = await Policies.findOne({});
-        if (policy) {
-            res.json({ success: true, data: policy });
-        } else {
-            res.json({ success: false, message: 'No policies found' });
-        }
-    } catch (error) {
-        console.error('Error in /api/policies:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+app.get("/api/policies", async (req, res) => {
+  try {
+    const policy = await Policies.findOne({});
+    if (policy) {
+      res.json({ success: true, data: policy });
+    } else {
+      res.json({ success: false, message: "No policies found" });
     }
+  } catch (error) {
+    console.error("Error in /api/policies:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
 });
 
-app.delete('/api/policies', async (req, res) => {
-    try {
-        await Policies.deleteOne({});
-        res.json({ success: true, message: 'Policy deleted successfully' });
-    } catch (error) {
-        console.error('Error in /api/policies:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
-    }
+app.delete("/api/policies", async (req, res) => {
+  try {
+    await Policies.deleteOne({});
+    res.json({ success: true, message: "Policy deleted successfully" });
+  } catch (error) {
+    console.error("Error in /api/policies:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
 });
-
 
 //REQUEST
 app.post("/api/countplan", async (req, res) => {
@@ -651,12 +646,10 @@ app.post("/api/adminsignup", async (req, res) => {
   try {
     const existingAdmin = await Admin.findOne({ email });
     if (existingAdmin) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "User with this email already exists",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "User with this email already exists",
+      });
     }
     const token = crypto.randomBytes(20).toString("hex");
     const newAdmin = new Admin({
@@ -718,13 +711,11 @@ app.post("/api/adminsignup", async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "An Email sent to your account please verify",
-        userId: newAdmin._id,
-      });
+    res.status(200).json({
+      success: true,
+      message: "An Email sent to your account please verify",
+      userId: newAdmin._id,
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -830,13 +821,11 @@ app.post("/api/adminsignin", async (req, res) => {
     }
 
     if (password === admin.password) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "SignIn successful",
-          adminData: admin,
-        });
+      return res.status(200).json({
+        success: true,
+        message: "SignIn successful",
+        adminData: admin,
+      });
     }
 
     res
@@ -910,12 +899,10 @@ app.post("/api/forgot", async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Password reset link sent to your email",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Password reset link sent to your email",
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -942,13 +929,11 @@ app.post("/api/reset-password", async (req, res) => {
 
     await user.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Password updated successfully",
-        email: user.email,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+      email: user.email,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -991,13 +976,11 @@ app.delete("/api/deleteadmin/:id", async (req, res) => {
       User: deletedUser,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1018,21 +1001,17 @@ app.put("/api/adminupdate/:id", async (req, res) => {
         .json({ success: false, message: "Admin not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Admin updated successfully",
-        admin: updatedAdmin,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Admin updated successfully",
+      admin: updatedAdmin,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1052,33 +1031,27 @@ app.post("/api/adminuploadcsv", upload.single("file"), async (req, res) => {
     .on("end", async () => {
       try {
         const result = await Admin.insertMany(csvs);
-        res
-          .status(200)
-          .json({
-            success: true,
-            message: "Data uploaded successfully",
-            data: result,
-          });
+        res.status(200).json({
+          success: true,
+          message: "Data uploaded successfully",
+          data: result,
+        });
       } catch (error) {
-        res
-          .status(500)
-          .json({
-            success: false,
-            message: "Internal server error",
-            error: error.message,
-          });
+        res.status(500).json({
+          success: false,
+          message: "Internal server error",
+          error: error.message,
+        });
       } finally {
         fs.unlinkSync(filePath);
       }
     })
     .on("error", (error) => {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Error reading CSV file",
-          error: error.message,
-        });
+      res.status(500).json({
+        success: false,
+        message: "Error reading CSV file",
+        error: error.message,
+      });
     });
 });
 
@@ -1101,13 +1074,11 @@ app.post("/api/changepassword", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Password updated successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1224,13 +1195,11 @@ app.put("/api/update/:id", async (req, res) => {
       data: updatedRole,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1246,21 +1215,17 @@ app.delete("/api/roles/:id", async (req, res) => {
         .json({ success: false, message: "Role not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Roles deleted successfully",
-        role: deletedRole,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Roles deleted successfully",
+      role: deletedRole,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1285,17 +1250,15 @@ app.get("/api/getrolebyid", async (req, res) => {
 
 //Users
 app.post("/api/usersignup", async (req, res) => {
-  const { email, fname, lname, phone, dob, type, logo, company } = req.body;
+  const { email, fname, lname, phone, dob, type } = req.body;
 
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "User with this email already exists",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "User with this email already exists",
+      });
     }
     const token = crypto.randomBytes(20).toString("hex");
     const newUser = new User({
@@ -1309,42 +1272,31 @@ app.post("/api/usersignup", async (req, res) => {
       verifyTokenExpires: Date.now() + 3600000,
     });
     await newUser.save();
-    const verifyLink = `${process.env.WEBSITE_URL}/verify/${token}`;
 
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
-      subject: `${fname} Verify Email`,
+      subject: `Welcome to Pick My Course!`,
       html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
                 <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
                 <html lang="en">
                 
                   <head></head>
-                 <div id="__react-email-preview" style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">Welcome to AiCourse<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div>
+                 <div id="__react-email-preview" style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">Welcome to <strong>PickMyCourse !</strong>, We're excited to have you join our community of learners.<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div>
                  </div>
                 
                   <body style="margin-left:auto;margin-right:auto;margin-top:auto;margin-bottom:auto;background-color:rgb(255,255,255);font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;">
                     <table align="center" role="presentation" cellSpacing="0" cellPadding="0" border="0" width="100%" style="max-width:37.5em;margin-left:auto;margin-right:auto;margin-top:40px;margin-bottom:40px;width:465px;border-radius:0.25rem;border-width:1px;border-style:solid;border-color:rgb(234,234,234);padding:20px">
                       <tr style="width:100%">
                         <td>
-                          <table align="center" border="0" cellPadding="0" cellSpacing="0" role="presentation" width="100%" style="margin-top:32px">
-                            <tbody>
-                              <tr>
-                                <td><img alt="logo" src="${logo}" width="40" height="37" style="display:block;outline:none;border:none;text-decoration:none;margin-left:auto;margin-right:auto;margin-top:0px;margin-bottom:0px" /></td>
-                              </tr>
-                            </tbody>
-                          </table>
                           <h1 style="margin-left:0px;margin-right:0px;margin-top:30px;margin-bottom:30px;padding:0px;text-align:center;font-size:24px;font-weight:400;color:rgb(0,0,0)">Welcome to <strong>PickMyCourse</strong></h1>
-                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Hello <strong>${fname}</strong>,</p>
-                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Welcome to <strong>PickMyCourse</strong>, Unleash your AI potential with our platform, offering a seamless blend of theory and video courses. Dive into comprehensive lessons, from foundational theories to real-world applications, tailored to your learning preferences. Experience the future of AI education with AiCourse – where theory meets engaging visuals for a transformative learning journey!.</p>
-                          <table align="center" border="0" cellPadding="0" cellSpacing="0" role="presentation" width="100%" style="margin-bottom:32px;margin-top:32px;text-align:center">
-                            <tbody>
-                              <tr>
-                                <td><a href="${verifyLink}" target="_blank" style="p-x:20px;p-y:12px;line-height:100%;text-decoration:none;display:inline-block;max-width:100%;padding:12px 20px;border-radius:0.25rem;background-color:rgb(0,0,0);text-align:center;font-size:12px;font-weight:600;color:rgb(255,255,255);text-decoration-line:none"><span></span><span style="p-x:20px;p-y:12px;max-width:100%;display:inline-block;line-height:120%;text-decoration:none;text-transform:none;mso-padding-alt:0px;mso-text-raise:9px"><span>Verify Email</span></a></td>
-                              </tr>
-                            </tbody>
-                          </table>
-                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Best,<p target="_blank" style="color:rgb(0,0,0);text-decoration:none;text-decoration-line:none">The <strong>${company}</strong> Team</p></p>
+                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Hi <strong>${fname}</strong>,</p>
+                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Welcome to <strong>PickMyCourse !</strong>, We're excited to have you join our community of learners.</p>
+                          <p style="margin-left:0px;margin-right:0px;margin-top:5px;margin-bottom:5px;padding:0px;font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Get started by creating your first AI-powered course:</p>
+                           <p style="margin-left:0px;margin-right:0px;margin-top:5px;margin-bottom:5px;padding:0px;font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Here are some helpful resources to guide you:</p>
+                            <p style="margin-left:0px;margin-right:0px;margin-top:5px;margin-bottom:5px;padding:0px;font-size:14px;line-height:24px;margin:16px 0;color:rgb(78, 166, 226)"><a href="https://helpcenter.pickmycourseai.support/" target="_blank" >https://helpcenter.pickmycourseai.support/</a></p>
+                          
+                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Happy learning!,<p target="_blank" style="color:rgb(0,0,0);text-decoration:none;text-decoration-line:none">The <strong>Pick My Course</strong> Team</p></p>
                           </td>
                       </tr>
                     </table>
@@ -1355,13 +1307,11 @@ app.post("/api/usersignup", async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "An Email sent to your account please verify",
-        userId: newUser,
-      });
+    res.status(200).json({
+      success: true,
+      message: "An Email sent to your account please verify",
+      userId: newUser,
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -1473,7 +1423,6 @@ app.delete("/api/deleteuser", async (req, res) => {
   }
 });
 
-
 app.post("/api/emailupdate", async (req, res) => {
   const { phone } = req.query;
   const { email } = req.body;
@@ -1487,12 +1436,10 @@ app.post("/api/emailupdate", async (req, res) => {
     }
     const verify = await User.findOne({ email });
     if (verify) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "User with this email already exists",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "User with this email already exists",
+      });
     }
     user.email = email;
     await user.save();
@@ -1522,13 +1469,11 @@ app.post("/api/emailupdate", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Email updated successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1546,12 +1491,10 @@ app.post("/api/phoneupdate", async (req, res) => {
 
     const verify = await User.findOne({ phone });
     if (verify) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "User with this Phone already exists",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "User with this Phone already exists",
+      });
     }
     user.phone = phone;
     await user.save();
@@ -1581,13 +1524,11 @@ app.post("/api/phoneupdate", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Phone updated successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1607,33 +1548,27 @@ app.post("/api/useruploadcsv", upload.single("file"), async (req, res) => {
     .on("end", async () => {
       try {
         const result = await User.insertMany(csvs);
-        res
-          .status(200)
-          .json({
-            success: true,
-            message: "Data uploaded successfully",
-            data: result,
-          });
+        res.status(200).json({
+          success: true,
+          message: "Data uploaded successfully",
+          data: result,
+        });
       } catch (error) {
-        res
-          .status(500)
-          .json({
-            success: false,
-            message: "Internal server error",
-            error: error.message,
-          });
+        res.status(500).json({
+          success: false,
+          message: "Internal server error",
+          error: error.message,
+        });
       } finally {
         fs.unlinkSync(filePath);
       }
     })
     .on("error", (error) => {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Error reading CSV file",
-          error: error.message,
-        });
+      res.status(500).json({
+        success: false,
+        message: "Error reading CSV file",
+        error: error.message,
+      });
     });
 });
 
@@ -1660,8 +1595,16 @@ app.post("/api/data", async (req, res) => {
 
 //SUBSCRIPTION PLAN
 app.post("/api/subscriptionplan", async (req, res) => {
-  const { packagename, price,inr, course, tax, subtopic, coursetype, stripeId } =
-    req.body;
+  const {
+    packagename,
+    price,
+    inr,
+    course,
+    tax,
+    subtopic,
+    coursetype,
+    stripeId,
+  } = req.body;
   try {
     const newPlan = new SubscriptionPlan({
       packagename,
@@ -1674,13 +1617,11 @@ app.post("/api/subscriptionplan", async (req, res) => {
       stripeId,
     });
     await newPlan.save();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Plan created successfully",
-        Plan: newPlan,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Plan created successfully",
+      Plan: newPlan,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -1717,25 +1658,31 @@ app.post("/api/addusertoplan", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred",
+      error: error.message,
+    });
   }
 });
 
 app.put("/api/subscriptionplan/:id", async (req, res) => {
   const { id } = req.params;
-  const { packagename, price,inr, course, tax, subtopic, coursetype, stripeId } =
-    req.body;
+  const {
+    packagename,
+    price,
+    inr,
+    course,
+    tax,
+    subtopic,
+    coursetype,
+    stripeId,
+  } = req.body;
 
   try {
     const updatedPlan = await SubscriptionPlan.findByIdAndUpdate(
       id,
-      { packagename, price,inr, course, tax, subtopic, coursetype, stripeId },
+      { packagename, price, inr, course, tax, subtopic, coursetype, stripeId },
       { new: true, runValidators: true } // Returns the updated document and runs validators
     );
 
@@ -1745,21 +1692,17 @@ app.put("/api/subscriptionplan/:id", async (req, res) => {
         .json({ success: false, message: "Plan not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Plan updated successfully",
-        Plan: updatedPlan,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Plan updated successfully",
+      Plan: updatedPlan,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1775,21 +1718,17 @@ app.delete("/api/subscriptionplan/:id", async (req, res) => {
         .json({ success: false, message: "Plan not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Plan deleted successfully",
-        Plan: deletedPlan,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Plan deleted successfully",
+      Plan: deletedPlan,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1824,7 +1763,6 @@ app.post("/api/ticket", async (req, res) => {
     subject,
     desc1,
     priority,
-    status,
   } = req.body;
   try {
     const token = crypto.randomBytes(2).toString("hex");
@@ -1843,13 +1781,46 @@ app.post("/api/ticket", async (req, res) => {
       status: "New Ticket",
     });
     await newTicket.save();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Ticket created successfully",
-        Ticket: newTicket.ticketId,
-      });
+    
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: `Your Pick My Course Support Ticket Has Been Received ${ticketId} `,
+      html: `
+      <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body style="margin-left:auto;margin-right:auto;margin-top:auto;margin-bottom:auto;background-color:rgb(255,255,255);font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">
+    <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:37.5em;margin-left:auto;margin-right:auto;margin-top:40px;margin-bottom:40px;width:465px;border-radius:0.25rem;border-width:1px;border-style:solid;border-color:rgb(234,234,234);padding:20px">
+      <tr style="width:100%">
+        <td>
+          <h1 style="margin-left:0px;margin-right:0px;margin-top:30px;margin-bottom:30px;padding:0px;text-align:center;font-size:24px;font-weight:400;color:rgb(0,0,0)">Your Pick My Course Support Ticket  ${ticketId} ! </h1>
+          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Hi <strong>${fname} ${lname}</strong>,</p>
+          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">This email confirms that we've received your support <strong> ${ticketId} </strong></p>
+          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Thank you for contacting <strong>Pick My Course</strong>  Support! We appreciate you reaching out to us.</p>
+          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">We understand you're experiencing an issue with <strong> ${subject} </strong>. Our team is currently reviewing your request and will be in touch within 1 business day to assist you further</p>
+          <p style="font-size:14px;line-height:10px;margin:16px 0;color:rgb(0,0,0)">You may also find helpful information in our Help Center:</p>
+          <p style="margin-left:0px;margin-right:0px;margin-top:5px;margin-bottom:5px;padding:0px;font-size:14px;line-height:10px;margin:16px 0;color:rgb(78, 166, 226)"><a href="https://helpcenter.pickmycourseai.support/" target="_blank" >https://helpcenter.pickmycourseai.support/</a></p>
+          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">We appreciate your patience and understanding.</p>
+          <p style="font-size:14px;line-height:10px;margin:16px 0;color:rgb(0,0,0)">Sincerely,</p>
+          <p style="font-size:14px;line-height:10px;margin:16px 0;color:rgb(0,0,0)">The <strong>Pick My Course</strong> Team</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({
+      success: true,
+      message: "Ticket created successfully",
+      Ticket: newTicket.ticketId,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -1872,21 +1843,17 @@ app.put("/api/ticketupdate", async (req, res) => {
         .json({ success: false, message: "Ticket not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Ticket updated successfully",
-        Ticket: updatedTicket,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Ticket updated successfully",
+      Ticket: updatedTicket,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1902,21 +1869,17 @@ app.delete("/api/deleteticket", async (req, res) => {
         .json({ success: false, message: "Ticket not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Ticket deleted successfully",
-        Ticket: deletedTicket,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Ticket deleted successfully",
+      Ticket: deletedTicket,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -1955,13 +1918,11 @@ app.post("/api/category", async (req, res) => {
   try {
     const newCategory = new Category({ category });
     await newCategory.save();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Category created successfully",
-        Category: newCategory,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Category created successfully",
+      Category: newCategory,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -1984,21 +1945,17 @@ app.put("/api/category/:id", async (req, res) => {
         .json({ success: false, message: "Category not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Category updated successfully",
-        Category: updatedCategory,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Category updated successfully",
+      Category: updatedCategory,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2014,21 +1971,17 @@ app.delete("/api/category/:id", async (req, res) => {
         .json({ success: false, message: "Category not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Category deleted successfully",
-        Category: deletedCategory,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Category deleted successfully",
+      Category: deletedCategory,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2047,13 +2000,11 @@ app.post("/api/priority", async (req, res) => {
   try {
     const newPriority = new Priority({ priority });
     await newPriority.save();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Priority created successfully",
-        Priority: newPriority,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Priority created successfully",
+      Priority: newPriority,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -2076,21 +2027,17 @@ app.put("/api/priority/:id", async (req, res) => {
         .json({ success: false, message: "priority not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "priority updated successfully",
-        priority: updatedpriority,
-      });
+    res.status(200).json({
+      success: true,
+      message: "priority updated successfully",
+      priority: updatedpriority,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2106,21 +2053,17 @@ app.delete("/api/priority/:id", async (req, res) => {
         .json({ success: false, message: "Priority not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Priority deleted successfully",
-        Priority: deletedPriority,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Priority deleted successfully",
+      Priority: deletedPriority,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2139,13 +2082,11 @@ app.post("/api/status", async (req, res) => {
   try {
     const newStatus = new Status({ status, color });
     await newStatus.save();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "newStatus created successfully",
-        Status: newStatus,
-      });
+    res.status(200).json({
+      success: true,
+      message: "newStatus created successfully",
+      Status: newStatus,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -2168,21 +2109,17 @@ app.put("/api/status/:id", async (req, res) => {
         .json({ success: false, message: "Status not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Status updated successfully",
-        Status: updatedStatus,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Status updated successfully",
+      Status: updatedStatus,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2197,21 +2134,17 @@ app.delete("/api/status/:id", async (req, res) => {
         .json({ success: false, message: "Status not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Status deleted successfully",
-        Status: deletedStatus,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Status deleted successfully",
+      Status: deletedStatus,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2231,13 +2164,11 @@ app.post("/api/tax", async (req, res) => {
   try {
     const newTax = new Tax({ taxname, percentage });
     await newTax.save();
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Tax created successfully",
-        tax: newTax,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Tax created successfully",
+      tax: newTax,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
@@ -2258,21 +2189,17 @@ app.put("/api/taxupdate/:id", async (req, res) => {
       return res.status(404).json({ success: false, message: "Tax not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Tax updated successfully",
-        tax: updatedTax,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Tax updated successfully",
+      tax: updatedTax,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2286,21 +2213,17 @@ app.delete("/api/tax/:id", async (req, res) => {
       return res.status(404).json({ success: false, message: "Tax not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Tax deleted successfully",
-        tax: deletedTax,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Tax deleted successfully",
+      tax: deletedTax,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
@@ -2483,6 +2406,48 @@ app.post("/api/course", async (req, res) => {
           photo,
         });
         await newCourse.save();
+
+        const mailOptions = {
+          from: process.env.EMAIL,
+          to: email,
+          subject: `Welcome to Pick My Course!`,
+          html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+                    <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+                    <html lang="en">
+                    
+                      <head></head>
+                     <div id="__react-email-preview" style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">Your Pick My Course is Ready!<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div>
+                     </div>
+                    
+                     <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, sans-serif;">
+    <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 40px auto; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px;">
+      <tr>
+        <td style="text-align: center;">
+          <h1 style="font-size: 24px; font-weight: bold; margin: 20px 0; color: #000000;">Your Pick My Course is Ready!</h1>
+        </td>
+      </tr>
+      <tr>
+        <td style="font-size: 16px; color: #000000; line-height: 1.2;">
+          <p>Hi <strong>${fname} ${lname}</strong>,</p>
+          <p>Your course <strong>"${mainTopic}"</strong> is ready to go!</p>
+          <p style="font-size: 16px; color: #000000;">Start learning now and achieve your goals.</p>
+          <p style="font-size: 16px; color: #000000;">Need help? Our AI tutor is always available to answer your questions.</p>
+        </td>
+      </tr>
+      <tr>
+        <td><a href="https://app.pickmycourse.ai" target="_blank" style="p-x:20px;p-y:12px;line-height:100%;text-decoration:none;display:inline-block;max-width:100%;padding:12px 20px;border-radius:0.25rem;background-color:rgb(0,0,0);text-align:center;font-size:12px;font-weight:600;color:rgb(255,255,255);text-decoration-line:none"><span></span><span style="p-x:20px;p-y:12px;max-width:100%;display:inline-block;line-height:120%;text-decoration:none;text-transform:none;mso-padding-alt:0px;mso-text-raise:9px"</span><span>Start Learning</span></a></td>
+      </tr>                  
+     <tr style="width:100%">
+        <td>
+            <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Happy learning!,<p target="_blank" style="color:rgb(0,0,0);text-decoration:none;text-decoration-line:none">The <strong>Pick My Course</strong> Team</p></p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+        };
+
+        await transporter.sendMail(mailOptions);
         res.json({
           success: true,
           message: "Course created successfully",
@@ -2592,21 +2557,17 @@ app.delete("/api/deletecourse/:id", async (req, res) => {
         .json({ success: false, message: "Delete not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Course deleted successfully",
-        deleteCourse: deleteCourse,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Course deleted successfully",
+      deleteCourse: deleteCourse,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 });
 
