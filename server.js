@@ -253,6 +253,30 @@ const policiesSchema = new mongoose.Schema({
   billing: { type: String, default: "" },
 });
 
+const NotificationSchema = new mongoose.Schema({
+  user: String,
+  subject:String,
+  description:String,
+  read:String,
+},{timestamps:true});
+
+const faqSchema = new mongoose.Schema({
+  title:String,
+  content:String,
+},{timestamps:true});
+
+
+const otpSchema = new mongoose.Schema({
+  email:String,
+  otp:Number,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    expires: '5m' 
+  }
+});
+
+
 //MODEL
 const User = mongoose.model("User", userSchema);
 const ProfileImage = mongoose.model("ProfileImage", ImageSchema);
@@ -273,6 +297,121 @@ const Status = mongoose.model("Status", statusSchema);
 const Tax = mongoose.model("Tax", TaxSchema);
 const Help = mongoose.model("Help", HelpSchema);
 const Policies = mongoose.model("Policy", policiesSchema);
+const Notify = mongoose.model("Notify", NotificationSchema);
+const Faq = mongoose.model("Faq", faqSchema);
+const OTP = mongoose.model("otp",otpSchema);
+
+app.post("/api/otp", async (req, res) => {
+  const { email,fname,lname } = req.body;
+  try {
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(409).json({
+        success: false,
+        error: "EMAIL_ALREADY_EXISTS",
+        message: "User with this email already exists",
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    const existingOTP = await OTP.findOne({ email });
+
+    if (existingOTP) {
+      existingOTP.otp = otp;
+      existingOTP.createdAt = new Date(); 
+      await existingOTP.save();
+    } else {
+      const newOTP = new OTP({ email, otp });
+      await newOTP.save();
+    }
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: `Welcome to Pick My Course!`,
+      html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+                <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+                <html lang="en">
+                
+                  <head></head>
+                 <div id="__react-email-preview" style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">Welcome to <strong>PickMyCourse !</strong>, Change Email address<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div>
+                 </div>
+                
+                  <body style="margin-left:auto;margin-right:auto;margin-top:auto;margin-bottom:auto;background-color:rgb(255,255,255);font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;">
+                    <table align="center" role="presentation" cellSpacing="0" cellPadding="0" border="0" width="100%" style="max-width:37.5em;margin-left:auto;margin-right:auto;margin-top:40px;margin-bottom:40px;width:465px;border-radius:0.25rem;border-width:1px;border-style:solid;border-color:rgb(234,234,234);padding:20px">
+                      <tr style="width:100%">
+                        <td>
+                          <h1 style="margin-left:0px;margin-right:0px;margin-top:30px;margin-bottom:30px;padding:0px;text-align:center;font-size:24px;font-weight:400;color:rgb(0,0,0)">Welcome to <strong>PickMyCourse</strong></h1>
+                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Hi <strong>${fname} ${lname}</strong>,</p>
+                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Welcome to <strong>PickMyCourse !</strong>, </p>
+                          <p style="margin-left:0px;margin-right:0px;margin-top:5px;margin-bottom:5px;padding:0px;font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">We have received a request to update your email address associated with your account. To proceed with this request, please use the One-Time Password (OTP) provided below:</p>
+                           <p style="margin-left:0px;margin-right:0px;margin-top:5px;margin-bottom:5px;padding:0px;font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Your OTP:<strong> ${otp} </strong></p>
+                            <p style="margin-left:0px;margin-right:0px;margin-top:5px;margin-bottom:5px;padding:0px;font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">This OTP is valid for a limited time and will expire in 5 minutes. Please enter this code in the designated field to complete your email update.</p>                          
+                          
+                          <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Thank you for your attention,<p target="_blank" style="color:rgb(0,0,0);text-decoration:none;text-decoration-line:none">The <strong>Pick My Course</strong> Team</p></p>
+                          </td>
+                      </tr>
+                    </table>
+                  </body>
+                
+                </html>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({
+      success: true,
+      message: "newOTP created successfully",
+    });
+  } catch (error) {
+    console.error(error); 
+    res.status(500).json({
+      success: false,
+      error: "INTERNAL_SERVER_ERROR",
+      message: "An error occurred while processing your request.",
+    });
+  }
+});
+
+app.post("/api/validate-otp", async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+
+    const record = await OTP.findOne({ email });
+    
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        error: "OTP_NOT_FOUND",
+        message: "No OTP record found for this email or OTP has expired.",
+      });
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        error: "INVALID_OTP",
+        message: "The provided OTP is invalid.",
+      });
+    }
+
+    await OTP.deleteOne({ email });
+
+    res.status(200).json({
+      success: true,
+      message: "OTP validated successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      error: "INTERNAL_SERVER_ERROR",
+      message: "Internal server error.",
+    });
+  }
+});
+
 
 app.post("/order", async (req, res) => {
   try {
@@ -558,6 +697,63 @@ app.delete("/api/policies", async (req, res) => {
     res.json({ success: true, message: "Policy deleted successfully" });
   } catch (error) {
     console.error("Error in /api/policies:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+//faq
+
+app.post("/api/faq", async (req, res) => {
+  const { title,content } = req.body;
+  try {
+    const newFaq = new Faq({ title,content });
+    await newFaq.save();
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "New FAQ created successfully",
+        Faq: newFaq,
+      });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+app.delete("/api/deletefaq/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedFaq = await Faq.findByIdAndDelete(id);
+
+    if (!deletedFaq) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Faq not found" });
+    }
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Faq deleted successfully",
+        Faq: deletedFaq,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal server error",
+        error: error.message,
+      });
+  }
+});
+
+app.get("/api/getfaq", async (req, res) => {
+  try {
+    const faq = await Faq.find();
+    res.status(200).json({ success: true, faq:faq });
+  } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
@@ -1398,6 +1594,7 @@ app.delete("/api/deleteuser", async (req, res) => {
       Help.deleteMany({ user: id }),
       Ticket.deleteMany({ user: id }),
       Subscription.deleteMany({ user: id }),
+      Notify.deleteMany({ user: id }),
       ProfileImage.deleteOne({ user: id }),
       Count.deleteOne({ user: id }),
     ]);
@@ -1430,28 +1627,36 @@ app.post("/api/emailupdate", async (req, res) => {
   try {
     const user = await User.findOne({ phone });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User  not found" });
-    }
-    const verify = await User.findOne({ email });
-    if (verify) {
       return res.status(404).json({
         success: false,
+        error: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    const verify = await User.findOne({ email });
+    if (verify) {
+      return res.status(409).json({
+        success: false,
+        error: "EMAIL_ALREADY_EXISTS",
         message: "User with this email already exists",
       });
     }
+
     user.email = email;
     await user.save();
+
     const updatedTickets = await Ticket.updateMany(
       { phone },
       { $set: { email } }
     );
 
     if (updatedTickets.modifiedCount === 0) {
-      return res
-        .status(200)
-        .json({ success: false, message: "No tickets found to update" });
+      return res.status(200).json({
+        success: false,
+        error: "NO_TICKETS_FOUND",
+        message: "No tickets found to update",
+      });
     }
 
     const updatedCourses = await Course.updateMany(
@@ -1460,22 +1665,27 @@ app.post("/api/emailupdate", async (req, res) => {
     );
 
     if (updatedCourses.modifiedCount === 0) {
-      return res
-        .status(200)
-        .json({ success: false, message: "No courses found to update" });
+      return res.status(200).json({
+        success: false,
+        error: "NO_COURSES_FOUND",
+        message: "No courses found to update",
+      });
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Email updated successfully" });
+    res.status(200).json({
+      success: true,
+      message: "Email updated successfully",
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
+      error: "INTERNAL_SERVER_ERROR",
       message: "Internal server error",
-      error: error.message,
+      details: error.message,
     });
   }
 });
+
 
 app.post("/api/phoneupdate", async (req, res) => {
   const { email } = req.query;
@@ -1484,29 +1694,36 @@ app.post("/api/phoneupdate", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User  not found" });
+      return res.status(404).json({
+        success: false,
+        error: "USER_NOT_FOUND",
+        message: "User not found",
+      });
     }
 
     const verify = await User.findOne({ phone });
     if (verify) {
-      return res.status(404).json({
+      return res.status(409).json({
         success: false,
-        message: "User with this Phone already exists",
+        error: "PHONE_ALREADY_EXISTS",
+        message: "User with this phone already exists",
       });
     }
+
     user.phone = phone;
     await user.save();
+
     const updatedTickets = await Ticket.updateMany(
       { email },
       { $set: { phone } }
     );
 
     if (updatedTickets.modifiedCount === 0) {
-      return res
-        .status(200)
-        .json({ success: false, message: "No tickets found to update" });
+      return res.status(200).json({
+        success: false,
+        error: "NO_TICKETS_FOUND",
+        message: "No tickets found to update",
+      });
     }
 
     const updatedCourses = await Course.updateMany(
@@ -1515,22 +1732,27 @@ app.post("/api/phoneupdate", async (req, res) => {
     );
 
     if (updatedCourses.modifiedCount === 0) {
-      return res
-        .status(200)
-        .json({ success: false, message: "No courses found to update" });
+      return res.status(200).json({
+        success: false,
+        error: "NO_COURSES_FOUND",
+        message: "No courses found to update",
+      });
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Phone updated successfully" });
+    res.status(200).json({
+      success: true,
+      message: "Phone updated successfully",
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
+      error: "INTERNAL_SERVER_ERROR",
       message: "Internal server error",
-      error: error.message,
+      details: error.message,
     });
   }
 });
+
 
 app.post("/api/useruploadcsv", upload.single("file"), async (req, res) => {
   if (!req.file) {
@@ -1744,7 +1966,7 @@ app.get("/api/getsubscriptionplan", async (req, res) => {
 app.get("/api/getsubscriptionplanbyid/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const plan = await SubscriptionPlan.findByIdAndUpdate(id);
+    const plan = await SubscriptionPlan.findById(id);
     res.status(200).json({ success: true, plan: plan });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -1993,6 +2215,95 @@ app.get("/api/getcategory", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
+//notify
+
+app.post("/api/notify", async (req, res) => {
+  const { user,subject,description,read } = req.body;
+  try {
+    const newNotify = new Notify({ user,subject,description,read:'no' });
+    await newNotify.save();
+    res.status(200).json({
+      success: true,
+      message: "Notify created successfully",
+      Priority: newNotify,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+app.get("/api/getnotify", async (req, res) => {
+  try {
+    const notify = await Notify.find();
+    res.status(200).json({ success: true, notify: notify });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+app.get("/api/getnotifybyid", async (req, res) => {
+  const { user } = req.query; 
+  try {
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User query parameter is required" });
+    }
+    const notify = await Notify.find({ user });
+
+    if (notify.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No notifications found for this user" });
+    }
+
+    res.status(200).json({ success: true, notify });
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+app.put("/api/updatenotify", async (req, res) => {
+  const { user } = req.query;
+
+  try {
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User query parameter is required" });
+    }
+
+    // Update all notifications where the `user` matches, setting `read` to "yes"
+    const result = await Notify.updateMany({ user }, { $set: { read: "yes" } });
+
+    if (result.modifiedCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No notifications found to update for this user" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Notifications updated successfully",
+      updatedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error updating notifications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+
 
 //priority
 app.post("/api/priority", async (req, res) => {
