@@ -2127,7 +2127,7 @@ app.get("/api/getticketbyid", async (req, res) => {
 app.get("/api/getticketuserbyid", async (req, res) => {
   const { user } = req.query;
   try {
-    const ticket = await Ticket.find(user);
+    const ticket = await Ticket.find({user});
     res.status(200).json({ success: true, ticket: ticket });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
