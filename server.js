@@ -23,6 +23,7 @@ const csvParser = require("csv-parser");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
+const { log } = require("console");
 
 //INITIALIZE
 const app = express();
@@ -2573,7 +2574,7 @@ app.post("/api/prompt", async (req, res) => {
   ];
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-pro",
+    model: "gemini-1.5-flash",
     safetySettings,
   });
 
@@ -2619,7 +2620,7 @@ app.post("/api/generate", async (req, res) => {
   ];
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-pro",
+    model: "gemini-1.5-flash",
     safetySettings,
   });
 
